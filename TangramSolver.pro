@@ -5,11 +5,13 @@ CONFIG -= qt
 
 SOURCES += main.cpp \
     TangramSolver.cpp \
-    PolygonPattern.cpp
+    PolygonPattern.cpp \
+    functions.cpp
 
 HEADERS += \
     TangramSolver.h \
-    PolygonPattern.h
+    PolygonPattern.h \
+    functions.h
 
 INCLUDEPATH += /usr/local/include
 
