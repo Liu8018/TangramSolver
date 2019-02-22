@@ -15,8 +15,14 @@ private:
     //从二值图中提取PolygonPattern
     void extractPolygonPatterns(const cv::Mat &binImg, std::vector<PolygonPattern> &polygonPatterns);
     
+    //精简轮廓点
+    void stripContour(std::vector<cv::Point> &cntPts);
+    
     //纯粹搜索求解的fit()函数
     void fit();
+    
+    //debug用的一些函数
+    void drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg);
 };
 
 #endif // TANGRAMSOLVER_H

@@ -17,28 +17,27 @@ void PolygonPattern::setPoints(const std::vector<cv::Point> &cntPts)
         m_angles[i] = -1.0;
 }
 
-cv::Point2f PolygonPattern::getCntPoint(int pointId)
+cv::Point2f PolygonPattern::getCntPoint(int pointId) const
 {
     return m_cntPts[pointId];
 }
 
-int PolygonPattern::getPrevCntPointId(int currentPointId)
+void PolygonPattern::getAllCntPoints(std::vector<cv::Point2f> &cntPts) const
 {
-    if(currentPointId == 0)
-        return m_cntPts.size()-1;
-    else
-        return currentPointId-1;
+    cntPts.assign(m_cntPts.begin(),m_cntPts.end());
 }
 
-int PolygonPattern::getNextCntPointId(int currentPointId)
+int PolygonPattern::getPrevCntPointId(int currentPointId) const
 {
-    if(currentPointId == m_cntPts.size()-1)
-        return 0;
-    else
-        return currentPointId+1;
+    return getPrevIndex(m_cntPts.size(),currentPointId);
 }
 
-int PolygonPattern::getCntPtsSize()
+int PolygonPattern::getNextCntPointId(int currentPointId) const
+{
+    return getNextIndex(m_cntPts.size(),currentPointId);
+}
+
+int PolygonPattern::getCntPtsSize() const
 {
     return m_cntPts.size();
 }
