@@ -71,7 +71,7 @@ bool calcInterSec(const cv::Point &pt1, const cv::Point &pt2, const cv::Point &p
     float dy42 = pt4.y-pt2.y;
     
     float denominator = dx34*dy12 - dx12*dy34;
-    if(denominator == 0)
+    if(std::fabs(denominator) < 0.001)
         return false;
     
     float numerator1 = dx34*dy12*pt2.x + dx12*dx34*dy42 - dx12*dy34*pt4.x;

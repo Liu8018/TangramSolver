@@ -21,6 +21,9 @@ private:
     //纯粹搜索求解的fit()函数
     void fit();
     
+    //放置一个polygon到另一个polygon
+    void place(PolygonPattern &dstPolygon, PolygonPattern &unitPolygon, PolygonPattern &resultPolygon);
+    
     //debug用的一些函数
     void drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg);
 };

@@ -120,6 +120,11 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     cv::waitKey();
 }
 
+void TangramSolver::place(PolygonPattern &dstPolygon, PolygonPattern &unitPolygon, PolygonPattern &resultPolygon)
+{
+    
+}
+
 void TangramSolver::drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg)
 {
     img.copyTo(outImg);
