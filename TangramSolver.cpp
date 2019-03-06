@@ -82,10 +82,13 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     //runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
     //std::cout<<"runtime:"<<runtime<<std::endl;
     
-    //预处理
+    //预处理之阈值化
     cv::Mat binUnitsImg, binDstsImg;
-    preprocess(unitsImg,binUnitsImg);
-    preprocess(dstsImg,binDstsImg);
+    myThreshold(unitsImg,binUnitsImg);
+    myThreshold(dstsImg,binDstsImg);
+    
+    //预处理之缩放至图案面积一致
+    
     
     //test preprocess
     if(DEBUG_MODE)
@@ -141,6 +144,11 @@ void TangramSolver::getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2
     vecB2.x = y3*sin_theta + x3*cos_theta;
 }
 
+float TangramSolver::getVecNorm(cv::Point2f vec)
+{
+    return std::sqrt(vec.x*vec.x+vec.y*vec.y);
+}
+
 bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPattern &unitPolygon, int unitCornerId, PolygonPattern &resultPolygon)
 {
     //以给定角点作为两个图案的原点
@@ -148,28 +156,22 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPa
     cv::Point2f unitOriginPt = unitPolygon.getCntPoint(unitCornerId);
     
     //选定标尺向量
-    cv::Point2f dstSideVec0 = dstPolygon.getCntPoint(dstPolygon.getNextCntPointId(dstCornerId)) - dstOriginPt;
     cv::Point2f unitSideVec0 = unitPolygon.getCntPoint(unitPolygon.getNextCntPointId(unitCornerId)) - unitOriginPt;
+    cv::Point2f dstSideVec0 = dstPolygon.getCntPoint(dstPolygon.getNextCntPointId(dstCornerId)) - dstOriginPt;
+    dstSideVec0 *= getVecNorm(unitSideVec0)/getVecNorm(dstSideVec0);
     
     //遍历单元块角点，获取新坐标系下的坐标
     int unitCntPtsSize = unitPolygon.getCntPtsSize();
-    std::vector<cv::Point2f> resultPts(unitCntPtsSize);
+    std::vector<cv::Point2f> newUnitPts(unitCntPtsSize);
     for(int i=0;i<unitCntPtsSize;i++)
     {
         cv::Point2f unitSideVec = unitPolygon.getCntPoint(i) - unitOriginPt;
         cv::Point2f newUnitSideVec;
         getRotatedVec(unitSideVec0,dstSideVec0,unitSideVec,newUnitSideVec);
         
-        resultPts[i] = dstOriginPt + newUnitSideVec;
+        newUnitPts[i] = dstOriginPt + newUnitSideVec;
     }
     
-    resultPolygon.setPoint2fs(resultPts);
-    
-    //test
-    cv::Mat bg(1000,1000,CV_8U,cv::Scalar(0));
-    drawPolygon(bg,resultPolygon);
-    cv::namedWindow("bg",0);
-    cv::imshow("bg",bg);
 }
 
 void TangramSolver::drawPolygon(cv::Mat &img, PolygonPattern &polygon)

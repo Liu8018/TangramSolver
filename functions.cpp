@@ -1,6 +1,6 @@
 #include "functions.h"
 
-void preprocess(const cv::Mat &src, cv::Mat &dst)
+void myThreshold(const cv::Mat &src, cv::Mat &dst)
 {
     //二值化
     cv::threshold(src,dst,0,255,CV_THRESH_OTSU);
@@ -15,6 +15,11 @@ void preprocess(const cv::Mat &src, cv::Mat &dst)
     //认为比例超过一半的像素是背景色
     if(nBorderWhitePix/(float)nBorderAllPix > 0.5)
         dst = 255 - dst;
+}
+
+void myScale(cv::Mat &img1, cv::Mat &img2)
+{
+    
 }
 
 float calcAngle(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Point2f &pt3)

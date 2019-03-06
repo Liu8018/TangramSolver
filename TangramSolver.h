@@ -27,6 +27,9 @@ private:
     //由向量A1->A2计算B1->B2
     void getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Point2f &vecB2);
     
+    //计算向量模
+    float getVecNorm(cv::Point2f vec);
+    
     //debug用的一些函数
     void drawPolygon(cv::Mat &img, PolygonPattern &polygon);
     void drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg);
