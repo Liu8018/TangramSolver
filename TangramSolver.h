@@ -22,9 +22,13 @@ private:
     void fit();
     
     //放置一个polygon到另一个polygon
-    void place(PolygonPattern &dstPolygon, PolygonPattern &unitPolygon, PolygonPattern &resultPolygon);
+    bool place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPattern &unitPolygon, int unitCornerId, PolygonPattern &resultPolygon);
+    
+    //由向量A1->A2计算B1->B2
+    void getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Point2f &vecB2);
     
     //debug用的一些函数
+    void drawPolygon(cv::Mat &img, PolygonPattern &polygon);
     void drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg);
 };
 

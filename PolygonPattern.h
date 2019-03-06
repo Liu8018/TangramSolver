@@ -17,6 +17,11 @@ public:
     
     //设置轮廓点集
     void setPoints(const std::vector<cv::Point> &cntPts);
+    void setPoint2fs(const std::vector<cv::Point2f> &cntPts);
+    
+    //获取某个点的上一个点和下一个点
+    int getPrevCntPointId(int currentPointId) const;
+    int getNextCntPointId(int currentPointId) const;
     
 private:
     //轮廓点集
@@ -27,10 +32,6 @@ private:
     
     //角度
     std::vector<float> m_angles;
-    
-    //获取某个点的上一个点和下一个点
-    int getPrevCntPointId(int currentPointId) const;
-    int getNextCntPointId(int currentPointId) const;
 };
 
 #endif // POLYGONPATTERN_H

@@ -17,6 +17,17 @@ void PolygonPattern::setPoints(const std::vector<cv::Point> &cntPts)
         m_angles[i] = -1.0;
 }
 
+void PolygonPattern::setPoint2fs(const std::vector<cv::Point2f> &cntPts)
+{
+    //赋给m_cntPts
+    m_cntPts.assign(cntPts.begin(),cntPts.end());
+    
+    //给m_angles分配存储空间并初始化
+    m_angles.resize(m_cntPts.size());
+    for(int i=0;i<m_angles.size();i++)
+        m_angles[i] = -1.0;
+}
+
 cv::Point2f PolygonPattern::getCntPoint(int pointId) const
 {
     return m_cntPts[pointId];
@@ -58,7 +69,6 @@ float PolygonPattern::getAngle(int pointId)
         if(!isConvexCorner(pt1,pt2,pt3))
             angle = 2*CV_PI - angle;
         
-        //返回值
         m_angles[pointId] = angle;
     }
     

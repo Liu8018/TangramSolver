@@ -89,11 +89,12 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     
     //test preprocess
     if(DEBUG_MODE)
-    {
+    {/*
         cv::namedWindow("pre_binUnitsImg",0);
         cv::imshow("pre_binUnitsImg",binUnitsImg);
         cv::namedWindow("pre_binDstsImg",0);
         cv::imshow("pre_binDstsImg",binDstsImg);
+        */
     }
     
     //提取polygon
@@ -116,13 +117,69 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
         cv::imshow("binDstsImg_test",binDstsImg_test);
     }
     
+    PolygonPattern resultPolygon;
+    place(dstPolygons[0],0,unitPolygons[0],0,resultPolygon);
     
     cv::waitKey();
 }
 
-void TangramSolver::place(PolygonPattern &dstPolygon, PolygonPattern &unitPolygon, PolygonPattern &resultPolygon)
+void TangramSolver::getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Point2f &vecB2)
 {
+    float x1 = vecA1.x;
+    float y1 = vecA1.y;
     
+    float x2 = vecA2.x;
+    float y2 = vecA2.y;
+    
+    float sin_theta = (x2*y1 - x1*y2)/(x1*x1 + y1*y1);
+    float cos_theta = (x1*x2 + y1*y2)/(x1*x1 + y1*y1);
+    
+    float x3 = vecB1.x;
+    float y3 = vecB1.y;
+    
+    vecB2.y = y3*cos_theta - x3*sin_theta;
+    vecB2.x = y3*sin_theta + x3*cos_theta;
+}
+
+bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPattern &unitPolygon, int unitCornerId, PolygonPattern &resultPolygon)
+{
+    //以给定角点作为两个图案的原点
+    cv::Point2f dstOriginPt = dstPolygon.getCntPoint(dstCornerId);
+    cv::Point2f unitOriginPt = unitPolygon.getCntPoint(unitCornerId);
+    
+    //选定标尺向量
+    cv::Point2f dstSideVec0 = dstPolygon.getCntPoint(dstPolygon.getNextCntPointId(dstCornerId)) - dstOriginPt;
+    cv::Point2f unitSideVec0 = unitPolygon.getCntPoint(unitPolygon.getNextCntPointId(unitCornerId)) - unitOriginPt;
+    
+    //遍历单元块角点，获取新坐标系下的坐标
+    int unitCntPtsSize = unitPolygon.getCntPtsSize();
+    std::vector<cv::Point2f> resultPts(unitCntPtsSize);
+    for(int i=0;i<unitCntPtsSize;i++)
+    {
+        cv::Point2f unitSideVec = unitPolygon.getCntPoint(i) - unitOriginPt;
+        cv::Point2f newUnitSideVec;
+        getRotatedVec(unitSideVec0,dstSideVec0,unitSideVec,newUnitSideVec);
+        
+        resultPts[i] = dstOriginPt + newUnitSideVec;
+    }
+    
+    resultPolygon.setPoint2fs(resultPts);
+    
+    //test
+    cv::Mat bg(1000,1000,CV_8U,cv::Scalar(0));
+    drawPolygon(bg,resultPolygon);
+    cv::namedWindow("bg",0);
+    cv::imshow("bg",bg);
+}
+
+void TangramSolver::drawPolygon(cv::Mat &img, PolygonPattern &polygon)
+{
+    std::vector<cv::Point2f> contours_2f;
+    polygon.getAllCntPoints(contours_2f);
+    std::vector<std::vector<cv::Point>> contours(1);
+    for(int k=0;k<contours_2f.size();k++)
+        contours[0].push_back(cv::Point(contours_2f[k].x,contours_2f[k].y));
+    cv::drawContours(img,contours,0,cv::Scalar(255),-1);
 }
 
 void TangramSolver::drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg)
