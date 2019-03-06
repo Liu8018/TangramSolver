@@ -91,3 +91,19 @@ bool calcInterSec(const cv::Point &pt1, const cv::Point &pt2, const cv::Point &p
     
     return true;
 }
+
+void point2fToPoint(std::vector<cv::Point2f> ptfs, std::vector<cv::Point> &pts)
+{
+    pts.resize(ptfs.size());
+    
+    for(int i=0;i<pts.size();i++)
+        pts[i] = cv::Point(ptfs[i].x,ptfs[i].y);
+}
+
+void pointToPoint2f(std::vector<cv::Point> pts, std::vector<cv::Point2f> &ptfs)
+{
+    ptfs.resize(pts.size());
+    
+    for(int i=0;i<ptfs.size();i++)
+        ptfs[i] = cv::Point2f(pts[i].x,pts[i].y);
+}

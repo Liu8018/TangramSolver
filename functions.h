@@ -22,4 +22,8 @@ int getNextIndex(int listSize, int currentIndex);
 //计算两条边的交点
 bool calcInterSec(const cv::Point &pt1, const cv::Point &pt2, const cv::Point &pt3, const cv::Point &pt4, cv::Point &intersecPt);
 
+//cv::Point2f与cv::Point的相互转换
+void point2fToPoint(std::vector<cv::Point2f> ptfs, std::vector<cv::Point> &pts);
+void pointToPoint2f(std::vector<cv::Point> pts, std::vector<cv::Point2f> &ptfs);
+
 #endif // FUNCTIONS_H

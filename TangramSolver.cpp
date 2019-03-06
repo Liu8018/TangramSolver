@@ -121,7 +121,7 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     }
     
     PolygonPattern resultPolygon;
-    place(dstPolygons[0],0,unitPolygons[3],0,resultPolygon);
+    place(dstPolygons[0],0,unitPolygons[3],1,resultPolygon);
     
     cv::waitKey();
 }
@@ -155,9 +155,20 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPa
     cv::Point2f dstOriginPt = dstPolygon.getCntPoint(dstCornerId);
     cv::Point2f unitOriginPt = unitPolygon.getCntPoint(unitCornerId);
     
+    bool dstVecDirect = 0;
+    bool unitVecDirect = 0;
+    
     //选定标尺向量
-    cv::Point2f unitSideVec0 = unitPolygon.getCntPoint(unitPolygon.getNextCntPointId(unitCornerId)) - unitOriginPt;
-    cv::Point2f dstSideVec0 = dstPolygon.getCntPoint(dstPolygon.getNextCntPointId(dstCornerId)) - dstOriginPt;
+    cv::Point2f unitSideVec0;
+    cv::Point2f dstSideVec0;
+    if(unitVecDirect == 0)
+        unitSideVec0 = unitPolygon.getCntPoint(unitPolygon.getNextCntPointId(unitCornerId)) - unitOriginPt;
+    else
+        unitSideVec0 = unitPolygon.getCntPoint(unitPolygon.getPrevCntPointId(unitCornerId)) - unitOriginPt;
+    if(dstVecDirect == 0)
+        dstSideVec0 = dstPolygon.getCntPoint(dstPolygon.getNextCntPointId(dstCornerId)) - dstOriginPt;
+    else
+        dstSideVec0 = dstPolygon.getCntPoint(dstPolygon.getPrevCntPointId(dstCornerId)) - dstOriginPt;
     dstSideVec0 *= getVecNorm(unitSideVec0)/getVecNorm(dstSideVec0);
     
     //遍历单元块角点，获取新坐标系下的坐标
@@ -172,6 +183,7 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPa
         newUnitPts[i] = dstOriginPt + newUnitSideVec;
     }
     
+    //测试相对位置关系
     PolygonPattern tmpPoly;
     tmpPoly.setPoint2fs(newUnitPts);
     cv::Mat bg(1000,1000,CV_8U,cv::Scalar(0));
@@ -179,6 +191,28 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPa
     drawPolygon(bg,tmpPoly);
     cv::namedWindow("rotated",0);
     cv::imshow("rotated",bg);
+    
+    //测试轮廓
+    std::vector<cv::Point2f> newContour2f;
+    std::vector<std::vector<cv::Point>> newContours(1);
+    dstPolygon.getAllCntPoints(newContour2f);
+    point2fToPoint(newContour2f,newContours[0]);
+    float dstArea = cv::contourArea(newContours[0]);
+    std::vector<cv::Point> tmpNewUnitPts;
+    point2fToPoint(newUnitPts,tmpNewUnitPts);
+    float unitArea = cv::contourArea(tmpNewUnitPts);
+    newContours[0].insert(newContours[0].end(),tmpNewUnitPts.begin(),tmpNewUnitPts.end());
+    cv::Mat bg2(1000,1000,CV_8UC3,cv::Scalar(0));
+    cv::drawContours(bg2,newContours,0,cv::Scalar(255,255,255),-1);
+    for(int i=0;i<newContours[0].size();i++)
+    {
+        cv::circle(bg2,newContours[0][i],0,cv::Scalar(255,100,10));
+        cv::putText(bg2,std::to_string(i),newContours[0][i],1,1,cv::Scalar(100,200,10));
+    }
+    std::cout<<"dstArea - unitArea: "<<dstArea - unitArea<<std::endl;
+    std::cout<<"Area: "<<cv::contourArea(newContours[0])<<std::endl;
+    cv::namedWindow("bg2",0);
+    cv::imshow("bg2",bg2);
     
 }
 
