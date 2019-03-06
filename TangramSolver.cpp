@@ -88,7 +88,7 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     myThreshold(dstsImg,binDstsImg);
     
     //预处理之缩放至图案面积一致
-    
+    myScale(binDstsImg,binUnitsImg);
     
     //test preprocess
     if(DEBUG_MODE)
@@ -121,7 +121,7 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     }
     
     PolygonPattern resultPolygon;
-    place(dstPolygons[0],0,unitPolygons[0],0,resultPolygon);
+    place(dstPolygons[0],0,unitPolygons[3],0,resultPolygon);
     
     cv::waitKey();
 }
@@ -172,6 +172,14 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPa
         newUnitPts[i] = dstOriginPt + newUnitSideVec;
     }
     
+    PolygonPattern tmpPoly;
+    tmpPoly.setPoint2fs(newUnitPts);
+    cv::Mat bg(1000,1000,CV_8U,cv::Scalar(0));
+    drawPolygon(bg,dstPolygon);
+    drawPolygon(bg,tmpPoly);
+    cv::namedWindow("rotated",0);
+    cv::imshow("rotated",bg);
+    
 }
 
 void TangramSolver::drawPolygon(cv::Mat &img, PolygonPattern &polygon)
@@ -181,7 +189,7 @@ void TangramSolver::drawPolygon(cv::Mat &img, PolygonPattern &polygon)
     std::vector<std::vector<cv::Point>> contours(1);
     for(int k=0;k<contours_2f.size();k++)
         contours[0].push_back(cv::Point(contours_2f[k].x,contours_2f[k].y));
-    cv::drawContours(img,contours,0,cv::Scalar(255),-1);
+    cv::drawContours(img,contours,0,cv::Scalar(255));
 }
 
 void TangramSolver::drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg)

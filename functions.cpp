@@ -19,7 +19,11 @@ void myThreshold(const cv::Mat &src, cv::Mat &dst)
 
 void myScale(cv::Mat &img1, cv::Mat &img2)
 {
+    //计算面积比例
+    float scaleRatio = sqrt(cv::countNonZero(img1)/(float)cv::countNonZero(img2));
     
+    //缩放
+    cv::resize(img2,img2,cv::Size(),scaleRatio,scaleRatio);
 }
 
 float calcAngle(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Point2f &pt3)
