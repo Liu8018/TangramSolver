@@ -11,7 +11,8 @@ public:
     //访问一些基本属性
     int getCntPtsSize() const;//轮廓点的数量
     cv::Point2f getCntPoint(int pointId) const;//随机访问轮廓点
-    void getAllCntPoints(std::vector<cv::Point2f> &cntPts) const;
+    void getAllCntPoint2fs(std::vector<cv::Point2f> &cntPts) const;
+    void getAllCntPoints(std::vector<cv::Point> &cntPts) const;
     float getAngle(int pointId);//随机访问角度
     float getArea();//面积
     
@@ -25,7 +26,8 @@ public:
     
 private:
     //轮廓点集
-    std::vector<cv::Point2f> m_cntPts;
+    std::vector<cv::Point2f> m_cntPt2fs;
+    //std::vector<cv::Point> m_cntPts;
     
     //面积
     float m_area;
