@@ -121,11 +121,11 @@ void TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
         cv::imshow("binDstsImg_test",binDstsImg_test);
     }
     
-    std::vector<PolygonPattern> resultPolygons;
+    PolygonPattern resultPolygon;
     
     double runtime = cv::getTickCount();
     
-    place(dstPolygons[0],5,unitPolygons[3],1,resultPolygons);
+    place(dstPolygons[0],5,unitPolygons[3],1,resultPolygon);
     
     runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
     std::cout<<"runtime:"<<runtime<<std::endl;
@@ -156,7 +156,7 @@ float TangramSolver::getVecNorm(cv::Point2f vec)
     return std::sqrt(vec.x*vec.x+vec.y*vec.y);
 }
 
-bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPattern &unitPolygon, int unitCornerId, std::vector<PolygonPattern> &resultPolygons)
+bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPattern &unitPolygon, int unitCornerId, PolygonPattern &resultPolygon)
 {
     //以给定角点作为两个图案的原点
     cv::Point2f dstOriginPt = dstPolygon.getCntPoint(dstCornerId);
@@ -211,7 +211,7 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPa
             id = unitPolygon.getPrevCntPointId(id);
     }
     tmpResultPolygon.setPoint2fs(combinedContour2f);
-/*    
+    
     //获取目标轮廓和单元块轮廓面积
     //double runtime = cv::getTickCount();
     
@@ -220,15 +220,26 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPa
     float resultArea = tmpResultPolygon.getArea();
     
     //runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
-    //std::cout<<"runtime:"<<runtime<<std::endl;
+    //std::cout<<"calcArea runtime:"<<runtime<<std::endl;
     
-    
+    /*
     std::cout<<"dstArea: "<<dstArea<<std::endl;
     std::cout<<"unitArea: "<<unitArea<<std::endl;
     std::cout<<"dstArea + unitArea: "<<dstArea + unitArea<<std::endl;
     std::cout<<"dstArea - unitArea: "<<dstArea - unitArea<<std::endl;
     std::cout<<"Area: "<<resultArea<<std::endl;
+    */
     
+    if(resultArea - (dstArea-unitArea) < 500)
+    {
+        resultPolygon = tmpResultPolygon;
+        
+        return true;
+    }
+    else
+        return false;
+    
+/*    
     //test
     std::vector<std::vector<cv::Point>> newContours(1);
     point2fToPoint(combinedContour2f,newContours[0]);

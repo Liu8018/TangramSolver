@@ -98,7 +98,13 @@ float PolygonPattern::getArea()
     //确保只计算一次
     if(m_area == -1.0)
     {
-        m_area = cv::contourArea(m_cntPt2fs);//有点问题
+        cv::Mat canvas(1000,1000,CV_8U,cv::Scalar(0));
+        std::vector<std::vector<cv::Point>> contours(1);
+        point2fToPoint(m_cntPt2fs,contours[0]);
+        cv::drawContours(canvas,contours,0,255,-1);
+        
+        m_area = cv::countNonZero(canvas);
+        //m_area = cv::contourArea(m_cntPt2fs);//有点问题
     }
     
     return m_area;
