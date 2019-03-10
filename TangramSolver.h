@@ -9,7 +9,11 @@ public:
     TangramSolver();
     
     //包含了预处理、搜索求解的solve()函数
-    void solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::vector<std::vector<cv::Point>> &resultPos);
+    bool solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::vector<std::vector<cv::Point>> &resultPos);
+    
+    //深度优先搜索
+    bool depthFirstFit(PolygonPattern &dstPolygon, std::vector<PolygonPattern> &unitPolygons, 
+                       std::vector<bool> isUsed, std::vector<std::vector<cv::Point>> &resultPos);
     
 private:
     //从二值图中提取PolygonPattern
@@ -22,7 +26,10 @@ private:
     void fit();
     
     //放置一个polygon到另一个polygon
-    bool place(PolygonPattern &dstPolygon, int dstCornerId, PolygonPattern &unitPolygon, int unitCornerId, PolygonPattern &resultPolygon);
+    bool place(PolygonPattern &dstPolygon, int dstCornerId, 
+               PolygonPattern &unitPolygon, int unitCornerId, 
+               bool dcb, bool ucb, 
+               PolygonPattern &resultPolygon, std::vector<cv::Point> &resultUnitPos);
     
     //由向量A1->A2计算B1->B2
     void getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Point2f &vecB2);
