@@ -345,7 +345,7 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
             for(int ucId=0;ucId<unitPtsSize;ucId++)
             {
                 //若目标角点小于单元块该角点则跳过
-                if(dstPolygon.getAngle(dcId) < unitPolygons[unitId].getAngle(ucId))
+                if(dstPolygon.getAngle(dcId) < unitPolygons[unitId].getAngle(ucId) - 0.1)
                     continue;
                 
                 //四种角点对齐方式

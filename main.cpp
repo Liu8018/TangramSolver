@@ -3,13 +3,13 @@
 int main()
 {
     //读入单元块
-    cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units4.jpg",0);
+    cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units5.jpg",0);
     
     //读入目标图像
-    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/13.jpg",0);
+    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d5/01.jpg",0);
     
     TangramSolver solver;
-    solver.setDistRatio(0.01);
+    solver.setDistRatio(0.001);
     
     std::vector<std::vector<cv::Point>> resultPos;
     bool isSolved = solver.solve(unitsImg,dstsImg,resultPos);
