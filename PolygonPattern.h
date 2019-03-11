@@ -24,9 +24,13 @@ public:
     int getPrevCntPointId(int currentPointId) const;
     int getNextCntPointId(int currentPointId) const;
     
-    static cv::Mat polyCanvas;
+    //设置画布尺寸
+    static void setCanvasSize(int sideLength);
     
 private:
+    //画布(计算面积时用到)
+    static cv::Mat polyCanvas;
+    
     //轮廓点集
     std::vector<cv::Point2f> m_cntPt2fs;
     std::vector<cv::Point> m_cntPts;

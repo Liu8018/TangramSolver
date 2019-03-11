@@ -1,6 +1,6 @@
 #include "PolygonPattern.h"
 
-cv::Mat PolygonPattern::polyCanvas = cv::Mat(1000,1000,CV_8U,cv::Scalar(0));
+cv::Mat PolygonPattern::polyCanvas = cv::Mat();
 
 PolygonPattern::PolygonPattern() 
 {
@@ -87,6 +87,11 @@ float PolygonPattern::getAngle(int pointId)
     return m_angles[pointId];
 }
 
+void PolygonPattern::setCanvasSize(int sideLength)
+{
+    polyCanvas = cv::Mat(sideLength,sideLength,CV_8U,cv::Scalar(0));
+}
+
 float PolygonPattern::getArea()
 {
     //确保只计算一次
@@ -98,7 +103,6 @@ float PolygonPattern::getArea()
         cv::drawContours(polyCanvas,contours,0,255,-1);
         
         m_area = cv::countNonZero(polyCanvas);
-        //m_area = cv::contourArea(m_cntPt2fs);//有点问题
     }
     
     return m_area;

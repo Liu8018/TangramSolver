@@ -15,7 +15,19 @@ public:
     bool depthFirstFit(PolygonPattern &dstPolygon, std::vector<PolygonPattern> &unitPolygons, 
                        std::vector<bool> isUsed, std::vector<std::vector<cv::Point>> &resultPos);
     
+    //设置允许的畸变程度
+    void setDistRatio(float distRatio);
+    
 private:
+    //允许的畸变程度
+    float m_distRatio;
+    
+    //缩放大小
+    int m_resizeLength;
+    
+    //目标图案面积
+    float m_dstPolygonArea;
+    
     //从二值图中提取PolygonPattern
     void extractPolygonPatterns(const cv::Mat &binImg, std::vector<PolygonPattern> &polygonPatterns);
     

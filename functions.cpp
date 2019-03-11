@@ -17,13 +17,29 @@ void myThreshold(const cv::Mat &src, cv::Mat &dst)
         dst = 255 - dst;
 }
 
-void myScale(cv::Mat &img1, cv::Mat &img2)
+void myResize(cv::Mat &img1, cv::Mat &img2, int resizeLength)
 {
-    //计算面积比例
+    //计算白色区域面积比例
     float scaleRatio = sqrt(cv::countNonZero(img1)/(float)cv::countNonZero(img2));
     
-    //缩放
+    //缩放至白色区域面积相等
     cv::resize(img2,img2,cv::Size(),scaleRatio,scaleRatio);
+    
+    //缩放至最长边为某个值
+    int maxSideLength = std::max(std::max(img1.rows,img1.cols),std::max(img2.rows,img2.cols));
+    
+    if(maxSideLength <= resizeLength)
+        return;
+    else
+    {
+        scaleRatio = resizeLength / (float)maxSideLength;
+        cv::resize(img1,img1,cv::Size(),scaleRatio,scaleRatio);
+        cv::resize(img2,img2,cv::Size(),scaleRatio,scaleRatio);
+    }
+    
+    //阈值化
+    cv::threshold(img1,img1,127,255,cv::THRESH_BINARY);
+    cv::threshold(img2,img2,127,255,cv::THRESH_BINARY);
 }
 
 float calcAngle(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Point2f &pt3)

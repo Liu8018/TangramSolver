@@ -7,7 +7,7 @@
 
 //提取轮廓前的预处理
 void myThreshold(const cv::Mat &src, cv::Mat &dst);
-void myScale(cv::Mat &img1, cv::Mat &img2);
+void myResize(cv::Mat &img1, cv::Mat &img2, int resizeLength);
 
 //根据三个点的坐标计算角度
 float calcAngle(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Point2f &pt3);

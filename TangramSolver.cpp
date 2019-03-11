@@ -2,7 +2,19 @@
 
 #define DEBUG_MODE 0
 
-TangramSolver::TangramSolver() {}
+TangramSolver::TangramSolver() 
+{
+    m_resizeLength = 200;
+    
+    m_distRatio = 0.02;
+    
+    PolygonPattern::setCanvasSize(m_resizeLength);
+}
+
+void TangramSolver::setDistRatio(float distRatio)
+{
+    m_distRatio = distRatio;
+}
 
 void TangramSolver::extractPolygonPatterns(const cv::Mat &binImg, std::vector<PolygonPattern> &polygonPatterns)
 {
@@ -32,6 +44,8 @@ void TangramSolver::extractPolygonPatterns(const cv::Mat &binImg, std::vector<Po
 
 void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
 {
+    bool isStripped = false;
+    
     //遍历轮廓点，删除角度接近180度的点，融合相邻的距离较近的点
     int ptSize = cntPts.size();
     std::vector<cv::Point> cntPts_new;
@@ -41,8 +55,11 @@ void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
         //角度
         float angle = calcAngle(cntPts[getPrevIndex(ptSize,i)],cntPts[i],cntPts[getNextIndex(ptSize,i)]);
         //std::cout<<"angle:"<<angle<<std::endl;
-        if(std::fabs(angle-CV_PI) < 0.08)
+        if(std::fabs(angle-CV_PI) < 0.1)
+        {
+            isStripped = true;
             continue;
+        }
         
         //距离
         cv::Point pt1 = cntPts[i];
@@ -51,6 +68,8 @@ void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
         //std::cout<<"distance:"<<distance<<std::endl;
         if(distance < 10)
         {
+            isStripped = true;
+            
             //计算交点
             cv::Point p1 = cntPts[getPrevIndex(ptSize,i)];
             cv::Point p2 = cntPts[i];
@@ -75,6 +94,12 @@ void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
     }
     
     cntPts.assign(cntPts_new.begin(),cntPts_new.end());
+    
+    //递归strip直到不能再strip为止
+    if(isStripped)
+        stripContour(cntPts);
+    else
+        return;
 }
 
 bool TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::vector<std::vector<cv::Point> > &resultPos)
@@ -88,12 +113,17 @@ bool TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     myThreshold(unitsImg,binUnitsImg);
     myThreshold(dstsImg,binDstsImg);
     
+    float dstPolygonArea_src = cv::countNonZero(binDstsImg);
+    
     //预处理之缩放至图案面积一致
-    myScale(binDstsImg,binUnitsImg);
+    myResize(binDstsImg,binUnitsImg,m_resizeLength);
+    
+    m_dstPolygonArea = cv::countNonZero(binDstsImg);
     
     //test preprocess
     if(DEBUG_MODE)
-    {/*
+    {
+        /*
         cv::namedWindow("pre_binUnitsImg",0);
         cv::imshow("pre_binUnitsImg",binUnitsImg);
         cv::namedWindow("pre_binDstsImg",0);
@@ -127,6 +157,21 @@ bool TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     std::vector<bool> isUsed(unitPolygons.size(),false);
     resultPos.resize(unitPolygons.size());
     bool isFited = depthFirstFit(dstPolygons[0],unitPolygons,isUsed,resultPos);
+    
+    if(isFited)
+    {
+        //把resultPos缩放回去
+        cv::Mat resultUnitsCanvas(m_resizeLength,m_resizeLength,CV_8U,cv::Scalar(0));
+        cv::drawContours(resultUnitsCanvas,resultPos,-1,cv::Scalar(255),-1);
+        //cv::imshow("c",resultUnitsCanvas);
+        float newArea = cv::countNonZero(resultUnitsCanvas);
+        float ratio = std::sqrt(dstPolygonArea_src/newArea);
+        
+        for(int i=0;i<resultPos.size();i++)
+            for(int j=0;j<resultPos[i].size();j++)
+                resultPos[i][j] = cv::Point(resultPos[i][j].x*ratio,resultPos[i][j].y*ratio);
+    }
+    
     return isFited;
 }
 
@@ -186,6 +231,10 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
     PolygonPattern tmpResultPolygon;
     std::vector<cv::Point> tmpResultUnitPos(unitCntPtsSize);
     std::vector<cv::Point2f> combinedContour2f(dstCntPtsSize+unitCntPtsSize);//存储新轮廓点
+    
+    std::vector<cv::Point> dstPolygonContour;
+    dstPolygon.getAllCntPoints(dstPolygonContour);
+    
     int id = dstCornerId;
     for(int i=0;i<dstCntPtsSize;i++)
     {
@@ -205,6 +254,11 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
         getRotatedVec(unitSideVec0,dstSideVec0,unitSideVec,newUnitSideVec);
         
         cv::Point2f newUnitPt = dstOriginPt + newUnitSideVec;
+        
+        //若这个点在目标图案外太远距离，则放置失败
+        if(cv::pointPolygonTest(dstPolygonContour,newUnitPt,1) < -8)
+            return false;
+        
         tmpResultUnitPos[i] = newUnitPt;
         combinedContour2f[dstCntPtsSize+i] = newUnitPt;
         
@@ -213,6 +267,9 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
         else
             id = unitPolygon.getPrevCntPointId(id);
     }
+    //确保轮廓点按逆时针旋转
+    if(dcb != 0)
+        std::reverse(combinedContour2f.begin(),combinedContour2f.end());
     tmpResultPolygon.setPoint2fs(combinedContour2f);
     
     //获取目标轮廓和单元块轮廓面积
@@ -222,38 +279,40 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
     float unitArea = unitPolygon.getArea();
     float resultArea = tmpResultPolygon.getArea();
     
+    float diffArea = dstArea-unitArea;
+    float distRatio = (resultArea - cv::arcLength(tmpResultUnitPos,1) - diffArea)/m_dstPolygonArea;
+    
     //runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
     //std::cout<<"calcArea runtime:"<<runtime<<std::endl;
     
-    /*
+    
     //test
-    std::cout<<"dstArea: "<<dstArea<<std::endl;
-    std::cout<<"unitArea: "<<unitArea<<std::endl;
-    std::cout<<"dstArea + unitArea: "<<dstArea + unitArea<<std::endl;
-    std::cout<<"dstArea - unitArea: "<<dstArea - unitArea<<std::endl;
-    std::cout<<"Area: "<<resultArea<<std::endl;
-    
-    std::vector<std::vector<cv::Point>> newContours(1);
-    point2fToPoint(combinedContour2f,newContours[0]);
-    cv::Mat bg2(1000,1000,CV_8UC3,cv::Scalar(255));
-    bg2 = cv::Scalar(0);
-    cv::drawContours(bg2,newContours,0,cv::Scalar(255,255,255),-1);
-    for(int i=0;i<newContours[0].size();i++)
+    if(DEBUG_MODE)
     {
-        cv::circle(bg2,newContours[0][i],0,cv::Scalar(255,100,10));
-        cv::putText(bg2,std::to_string(i),newContours[0][i],1,1,cv::Scalar(100,200,10));
+        std::cout<<"dstArea: "<<dstArea<<std::endl;
+        std::cout<<"unitArea: "<<unitArea<<std::endl;
+        std::cout<<"dstArea + unitArea: "<<dstArea + unitArea<<std::endl;
+        std::cout<<"dstArea - unitArea: "<<dstArea - unitArea<<std::endl;
+        std::cout<<"Area: "<<resultArea<<std::endl;
+        
+        std::vector<std::vector<cv::Point>> newContours(1);
+        point2fToPoint(combinedContour2f,newContours[0]);
+        cv::Mat bg2(m_resizeLength,m_resizeLength,CV_8UC3,cv::Scalar(255));
+        bg2 = cv::Scalar(0);
+        cv::drawContours(bg2,newContours,0,cv::Scalar(255,255,255),-1);
+        for(int i=0;i<newContours[0].size();i++)
+        {
+            cv::circle(bg2,newContours[0][i],0,cv::Scalar(255,100,10));
+            cv::putText(bg2,std::to_string(i),newContours[0][i],1,1,cv::Scalar(100,200,10));
+        }
+        cv::namedWindow("bg2",0);
+        cv::imshow("bg2",bg2);
+        std::cout<<distRatio<<std::endl;
+        cv::waitKey();
     }
-    cv::namedWindow("bg2",0);
-    cv::imshow("bg2",bg2);
-    */
-    
     
     //判断是否符合条件
-    float diffArea = dstArea-unitArea;
-    float distRatio = (resultArea - diffArea)/diffArea;
-    std::cout<<distRatio<<std::endl;
-    //cv::waitKey();
-    if(distRatio < 0.05)
+    if(distRatio < m_distRatio)
     {
         resultPolygon = tmpResultPolygon;
         resultUnitPos.assign(tmpResultUnitPos.begin(),tmpResultUnitPos.end());
@@ -285,6 +344,10 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
             int unitPtsSize = unitPolygons[unitId].getCntPtsSize();
             for(int ucId=0;ucId<unitPtsSize;ucId++)
             {
+                //若目标角点小于单元块该角点则跳过
+                if(dstPolygon.getAngle(dcId) < unitPolygons[unitId].getAngle(ucId))
+                    continue;
+                
                 //四种角点对齐方式
                 for(int dcb=0;dcb<=1;dcb++)
                 {
@@ -302,7 +365,6 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
                         //尝试放置
                         PolygonPattern resultPolygon;
                         bool isPlaced = place(dstPolygon,dcId,unitPolygons[unitId],ucId,dcb,ucb,resultPolygon,resultPos[unitId]);
-                        
                         //若放置成功
                         if(isPlaced)
                         {
