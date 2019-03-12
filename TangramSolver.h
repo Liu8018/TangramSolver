@@ -18,7 +18,13 @@ public:
     //设置允许的畸变程度
     void setDistRatio(float distRatio);
     
+    //设置是否允许翻转
+    void setFlipEnable(bool isFlipEnable);
+    
 private:
+    //是否允许翻转
+    int m_isFlipEnable;
+    
     //允许的畸变程度
     float m_distRatio;
     

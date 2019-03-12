@@ -4,11 +4,18 @@
 
 TangramSolver::TangramSolver() 
 {
+    m_isFlipEnable = true;
+    
     m_resizeLength = 200;
     
     m_distRatio = 0.02;
     
     PolygonPattern::setCanvasSize(m_resizeLength);
+}
+
+void TangramSolver::setFlipEnable(bool isFlipEnable)
+{
+    m_isFlipEnable = isFlipEnable;
 }
 
 void TangramSolver::setDistRatio(float distRatio)
@@ -343,13 +350,12 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
                 continue;
             
             //正反两面
-            for(int flip=0;flip<=1;flip++)
+            for(int flip=0;flip<=m_isFlipEnable;flip++)
             {
                 unitPolygons[unitId].setFlipState(flip);
                 
                 //单元块的每个角点
                 int unitPtsSize = unitPolygons[unitId].getCntPtsSize();
-                
                 for(int ucId=0;ucId<unitPtsSize;ucId++)
                 {                    
                     //若目标角点小于单元块该角点则跳过
