@@ -15,6 +15,7 @@ public:
     void getAllCntPoints(std::vector<cv::Point> &cntPts);
     float getAngle(int pointId);//随机访问角度
     float getArea();//面积
+    bool getFlipState();
     
     //设置轮廓点集
     void setPoints(const std::vector<cv::Point> &cntPts);
@@ -27,19 +28,32 @@ public:
     //设置画布尺寸
     static void setCanvasSize(int sideLength);
     
+    //设置翻转状态
+    void setFlipState(bool flipState);
+    
 private:
+    //翻转状态
+    bool m_flipState;
+    
     //画布(计算面积时用到)
     static cv::Mat polyCanvas;
     
     //轮廓点集
+        //正面
     std::vector<cv::Point2f> m_cntPt2fs;
     std::vector<cv::Point> m_cntPts;
+        //反面
+    std::vector<cv::Point2f> m_cntPt2fs_flip;
+    std::vector<cv::Point> m_cntPts_flip;
     
     //面积
     float m_area;
     
     //角度
+        //正面
     std::vector<float> m_angles;
+        //反面
+    std::vector<float> m_angles_flip;
 };
 
 #endif // POLYGONPATTERN_H
