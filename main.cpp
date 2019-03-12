@@ -6,7 +6,7 @@ int main()
     cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units4.jpg",0);
     
     //读入目标图像
-    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/03.jpg",0);
+    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/01.jpg",0);
     
     TangramSolver solver;
     solver.setFlipEnable(false);
