@@ -8,7 +8,7 @@ TangramSolver::TangramSolver()
     
     m_resizeLength = 200;
     
-    m_distRatio = 0.02;
+    m_distRatio = 0.05;
     
     PolygonPattern::setCanvasSize(m_resizeLength);
 }
@@ -288,7 +288,7 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
     float resultArea = tmpResultPolygon.getArea();
     
     float diffArea = dstArea-unitArea;
-    float distRatio = (resultArea - cv::arcLength(tmpResultUnitPos,1) - diffArea)/m_dstPolygonArea;
+    float distRatio = (resultArea - cv::arcLength(tmpResultUnitPos,1) - diffArea)/unitArea;//这里是除以unitArea还是m_dstPolygonArea好？
     
     //runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
     //std::cout<<"calcArea runtime:"<<runtime<<std::endl;
@@ -310,6 +310,8 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
             std::cout<<"dstArea - unitArea: "<<dstArea - unitArea<<std::endl;
             std::cout<<"Area: "<<resultArea<<std::endl;
             
+            std::cout<<"distRatio:"<<distRatio<<std::endl;
+            
             std::vector<std::vector<cv::Point>> newContours(1);
             point2fToPoint(combinedContour2f,newContours[0]);
             cv::Mat bg2(m_resizeLength,m_resizeLength,CV_8UC3,cv::Scalar(255));
@@ -322,7 +324,6 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
             }
             cv::namedWindow("bg2",0);
             cv::imshow("bg2",bg2);
-            std::cout<<distRatio<<std::endl;
             cv::waitKey();
         }
         
