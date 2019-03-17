@@ -3,10 +3,10 @@
 int main()
 {
     //读入单元块
-    cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units5.jpg",0);
+    cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units7.jpg",0);
     
     //读入目标图像
-    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d5/01.jpg",0);
+    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d7/01.jpg",0);
     
     TangramSolver solver;
     solver.setFlipEnable(false);
