@@ -282,18 +282,16 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
     
     //获取目标轮廓和单元块轮廓面积
     //double runtime = cv::getTickCount();
-    
     float dstArea = dstPolygon.getArea();
     float unitArea = unitPolygon.getArea();
     float resultArea = tmpResultPolygon.getArea();
-    
-    float diffArea = dstArea-unitArea;
-    float distRatio = (resultArea - cv::arcLength(tmpResultUnitPos,1) - diffArea)/unitArea;//这里是除以unitArea还是m_dstPolygonArea好？
-    
     //runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
     //std::cout<<"calcArea runtime:"<<runtime<<std::endl;
     
-    
+    //完美放置情况下的剩余面积
+    float diffArea = dstArea-unitArea;
+    //实际放置后的面积与理想面积之差占单元块面积的比例
+    float distRatio = (resultArea - cv::arcLength(tmpResultUnitPos,1) - diffArea)/unitArea;
     
     //判断是否符合条件
     if(distRatio < m_distRatio)
@@ -379,8 +377,10 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
                             }
                             
                             //尝试放置
+                            //确定dstPolygon和unitPolygon的情况下，place函数的六个决定性参数：dcId,unitId,flipState,ucId,dcb,ucb
                             PolygonPattern resultPolygon;
                             bool isPlaced = place(dstPolygon,dcId,unitPolygons[unitId],ucId,dcb,ucb,resultPolygon,resultPos[unitId]);
+                            
                             //若放置成功
                             if(isPlaced)
                             {
