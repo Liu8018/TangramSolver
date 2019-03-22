@@ -182,29 +182,6 @@ bool TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     return isFited;
 }
 
-void TangramSolver::getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Point2f &vecB2)
-{
-    float x1 = vecA1.x;
-    float y1 = vecA1.y;
-    
-    float x2 = vecA2.x;
-    float y2 = vecA2.y;
-    
-    float sin_theta = (x2*y1 - x1*y2)/(x1*x1 + y1*y1);
-    float cos_theta = (x1*x2 + y1*y2)/(x1*x1 + y1*y1);
-    
-    float x3 = vecB1.x;
-    float y3 = vecB1.y;
-    
-    vecB2.y = y3*cos_theta - x3*sin_theta;
-    vecB2.x = y3*sin_theta + x3*cos_theta;
-}
-
-float TangramSolver::getVecNorm(cv::Point2f vec)
-{
-    return std::sqrt(vec.x*vec.x+vec.y*vec.y);
-}
-
 bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId, 
                           PolygonPattern &unitPolygon, int unitCornerId, 
                           bool dcb, bool ucb, 

@@ -26,4 +26,10 @@ bool calcInterSec(const cv::Point &pt1, const cv::Point &pt2, const cv::Point &p
 void point2fToPoint(std::vector<cv::Point2f> ptfs, std::vector<cv::Point> &pts);
 void pointToPoint2f(std::vector<cv::Point> pts, std::vector<cv::Point2f> &ptfs);
 
+//由向量A1->A2计算B1->B2
+void getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Point2f &vecB2);
+
+//计算向量模
+float getVecNorm(cv::Point2f vec);
+
 #endif // FUNCTIONS_H
