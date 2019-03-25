@@ -1,6 +1,6 @@
 #include "TangramSolver.h"
 
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 TangramSolver::TangramSolver() 
 {
@@ -73,7 +73,7 @@ void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
         cv::Point pt2 = cntPts[getNextIndex(ptSize,i)];
         int distance = std::abs(pt1.x-pt2.x) + std::abs(pt1.y-pt2.y);
         //std::cout<<"distance:"<<distance<<std::endl;
-        if(distance < 10)
+        if(distance < 5)
         {
             isStripped = true;
             
@@ -258,13 +258,13 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
     tmpResultPolygon.setPoint2fs(combinedContour2f);
     
     //获取目标轮廓和单元块轮廓面积
-    double runtime = cv::getTickCount();
+    //double runtime = cv::getTickCount();
     float dstArea = dstPolygon.getArea();
     float unitArea = unitPolygon.getArea();
     float resultArea = tmpResultPolygon.getArea();
     
-    runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
-    std::cout<<"calcArea runtime:"<<runtime<<std::endl;
+    //runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
+    //std::cout<<"calcArea runtime:"<<runtime<<std::endl;
     
     //完美放置情况下的剩余面积
     float diffArea = dstArea-unitArea;
@@ -290,12 +290,13 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
             
             std::vector<std::vector<cv::Point>> newContours(1);
             point2fToPoint(combinedContour2f,newContours[0]);
-            
+            /*
             runtime = cv::getTickCount();
-            int area = scanArea(newContours[0],0,m_resizeLength,0,m_resizeLength);
+            int sArea = scanArea(newContours[0],0,m_resizeLength,0,m_resizeLength);
             runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
             std::cout<<"calcArea2 runtime:"<<runtime<<std::endl;
-            
+            std::cout<<"scan area: "<<sArea<<std::endl;
+            */
             cv::Mat bg2(m_resizeLength,m_resizeLength,CV_8UC3,cv::Scalar(255));
             bg2 = cv::Scalar(0);
             cv::drawContours(bg2,newContours,0,cv::Scalar(255,255,255),-1);
@@ -312,6 +313,7 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
             std::vector<PolygonPattern> testPolygons;
             testPolygons.push_back(resultPolygon);
             drawPolygons(testPolygons,testImg);
+            cv::namedWindow("testResultPolygon",0);
             cv::imshow("testResultPolygon",testImg);
 
             cv::waitKey();
@@ -349,7 +351,7 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
                 int unitPtsSize = unitPolygons[unitId].getCntPtsSize();
                 for(int ucId=0;ucId<unitPtsSize;ucId++)
                 {                    
-                    //若目标角点小于单元块该角点则跳过(这里结合轮廓拼接方案有问题!)
+                    //若目标角点小于单元块该角点则跳过
                     if(dstPolygon.getAngle(dcId) < unitPolygons[unitId].getAngle(ucId) - 0.1)
                         continue;
                     

@@ -132,8 +132,14 @@ float PolygonPattern::getAngle(int pointId)
             //计算角度
             float angle = calcAngle(pt1,pt2,pt3);
             //根据凹凸性更正角度
-            if(!isConvexCorner(pt1,pt2,pt3))
+            //if(!isConvexCorner(pt1,pt2,pt3))
+            //    angle = 2*CV_PI - angle;
+            
+            if(m_cntPts.empty())
+                point2fToPoint(m_cntPt2fs,m_cntPts);
+            if(!isConvexCorner2(m_cntPts,pointId))
                 angle = 2*CV_PI - angle;
+            
             
             m_angles[pointId] = angle;
         }

@@ -6,7 +6,7 @@ int main()
     cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units4.jpg",0);
     
     //读入目标图像
-    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/05.jpg",0);
+    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/06.jpg",0);
     
     //time
     double runtime = cv::getTickCount();

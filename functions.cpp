@@ -73,6 +73,28 @@ bool isConvexCorner(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Po
         return 1;
 }
 
+bool isConvexCorner2(const std::vector<cv::Point> &cntPts, int ptId)
+{
+    //按邻域面积判断凹凸性
+    cv::Point pt = cntPts[ptId];
+    
+    int dia = 7;
+    float area = dia*dia;
+    int rad = dia/2;
+    
+    float wArea = scanArea(cntPts,pt.x-rad,pt.x+rad,pt.y-rad,pt.y+rad);
+    
+    float ratio = wArea/area;
+    //std::cout<<"isConvexCorner2 area:"<<area<<std::endl;
+    //std::cout<<"isConvexCorner2 wArea:"<<wArea<<std::endl;
+    //std::cout<<"isConvexCorner2 ratio:"<<ratio<<std::endl;
+    
+    if(ratio < 0.5)
+        return true;
+    else
+        return false;
+}
+
 int getPrevIndex(int listSize, int currentIndex)
 {
     if(currentIndex == 0)
@@ -150,7 +172,7 @@ float getVecNorm(cv::Point2f vec)
 
 int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h2)
 {
-    cv::Mat testImg(500,500,CV_8U,cv::Scalar(0));
+    //cv::Mat testImg(500,500,CV_8U,cv::Scalar(0));
     
     int ptSize = cntPts.size();
     int resultArea = 0;
@@ -205,10 +227,35 @@ int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h
             int x1 = intersecXs[i];
             int x2 = intersecXs[i+1];
             
-            cv::line(testImg,cv::Point(x1,y0),cv::Point(x2,y0),cv::Scalar(255));
+            if(x2 < w1)
+                continue;
+            if(x1 > w2)
+                break;
+            
+            if(x1 <= w1 && w1 <= x2 && x2 <= w2)
+            {
+                resultArea += x2 - w1 + 1;
+                //cv::line(testImg,cv::Point(w1,y0),cv::Point(x2,y0),cv::Scalar(255));
+            }
+            else if(w1 <= x1 && x1 <= w2 && w2 <= x2)
+            {
+                resultArea += w2 - x1 + 1;
+                //cv::line(testImg,cv::Point(x1,y0),cv::Point(w2,y0),cv::Scalar(255));
+            }
+            else if(x1 <= w1 && w2 <= x2)
+            {
+                resultArea += w2 - w1 + 1;
+                //cv::line(testImg,cv::Point(w1,y0),cv::Point(w2,y0),cv::Scalar(255));
+            }
+            else
+            {
+                resultArea += x2 - x1 + 1;
+                //cv::line(testImg,cv::Point(x1,y0),cv::Point(x2,y0),cv::Scalar(255));
+            }
         }
         //cv::namedWindow("scanAreaTestImg",0);
         //cv::imshow("scanAreaTestImg",testImg);
-        //cv::waitKey();
     }
+    
+    return resultArea;
 }

@@ -13,7 +13,8 @@ void myResize(cv::Mat &img1, cv::Mat &img2, int resizeLength);
 float calcAngle(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Point2f &pt3);
 
 //判断角的凹凸性
-bool isConvexCorner(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Point2f &pt3);
+bool isConvexCorner(const cv::Point2f &pt1, const cv::Point2f &pt2, const cv::Point2f &pt3);//根据旋转方向
+bool isConvexCorner2(const std::vector<cv::Point> &cntPts, int ptId);//根据邻域面积
 
 //得到数组中上下元素的下标
 int getPrevIndex(int listSize, int currentIndex);
@@ -32,7 +33,7 @@ void getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Poi
 //计算向量模
 float getVecNorm(cv::Point2f vec);
 
-//使用扫描法计算多边形区域面积（不带边缘）
+//使用扫描法计算多边形区域面积
 int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h2);
 
 #endif // FUNCTIONS_H
