@@ -258,12 +258,13 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
     tmpResultPolygon.setPoint2fs(combinedContour2f);
     
     //获取目标轮廓和单元块轮廓面积
-    //double runtime = cv::getTickCount();
+    double runtime = cv::getTickCount();
     float dstArea = dstPolygon.getArea();
     float unitArea = unitPolygon.getArea();
     float resultArea = tmpResultPolygon.getArea();
-    //runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
-    //std::cout<<"calcArea runtime:"<<runtime<<std::endl;
+    
+    runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
+    std::cout<<"calcArea runtime:"<<runtime<<std::endl;
     
     //完美放置情况下的剩余面积
     float diffArea = dstArea-unitArea;
@@ -289,6 +290,12 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
             
             std::vector<std::vector<cv::Point>> newContours(1);
             point2fToPoint(combinedContour2f,newContours[0]);
+            
+            runtime = cv::getTickCount();
+            int area = scanArea(newContours[0],0,m_resizeLength,0,m_resizeLength);
+            runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
+            std::cout<<"calcArea2 runtime:"<<runtime<<std::endl;
+            
             cv::Mat bg2(m_resizeLength,m_resizeLength,CV_8UC3,cv::Scalar(255));
             bg2 = cv::Scalar(0);
             cv::drawContours(bg2,newContours,0,cv::Scalar(255,255,255),-1);

@@ -32,4 +32,7 @@ void getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Poi
 //计算向量模
 float getVecNorm(cv::Point2f vec);
 
+//使用扫描法计算多边形区域面积（不带边缘）
+int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h2);
+
 #endif // FUNCTIONS_H

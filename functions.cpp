@@ -1,4 +1,5 @@
 #include "functions.h"
+#include <opencv2/opencv.hpp>
 
 void myThreshold(const cv::Mat &src, cv::Mat &dst)
 {
@@ -145,4 +146,69 @@ void getRotatedVec(cv::Point2f vecA1,cv::Point2f vecA2,cv::Point2f vecB1,cv::Poi
 float getVecNorm(cv::Point2f vec)
 {
     return std::sqrt(vec.x*vec.x+vec.y*vec.y);
+}
+
+int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h2)
+{
+    cv::Mat testImg(500,500,CV_8U,cv::Scalar(0));
+    
+    int ptSize = cntPts.size();
+    int resultArea = 0;
+    
+    //从上到下扫描
+    for(int y0=h1; y0<h2; y0++)
+    {
+        //遍历每条线段，找交点
+        std::vector<int> intersecXs;//存储所有交点的x坐标
+        for(int i=0;i<ptSize;i++)
+        {
+            //线段两端点
+            cv::Point pt1 = cntPts[i];
+            int pt2Id = getNextIndex(ptSize,i);
+            cv::Point pt2 = cntPts[pt2Id];
+            
+            //跳过没有交点的线段
+            if( (pt1.y < y0 && pt2.y < y0) ||
+                (pt1.y > y0 && pt2.y > y0) )
+                continue;
+            
+            //计算交点
+            cv::Point intersecPt;
+            
+            //若交点是当前线段第一个端点,则直接计入交点
+            if(pt1.y == y0)
+                intersecPt = pt1;
+            //若交点是当前线段第二个端点，判断这条线段与下一条线段是否穿过扫描线,若未穿过则计入交点
+            else if(pt2.y == y0)
+            {
+                int pt3Id = getNextIndex(ptSize,pt2Id);
+                cv::Point pt3 = cntPts[pt3Id];
+                
+                if((pt2.y-pt1.y)*(pt3.y-pt2.y) < 0)
+                    calcInterSec(cv::Point(0,y0),cv::Point(100,y0),pt1,pt2,intersecPt);
+                else
+                    continue;
+            }
+            else
+                calcInterSec(cv::Point(0,y0),cv::Point(100,y0),pt1,pt2,intersecPt);
+            
+            
+            intersecXs.push_back(intersecPt.x);
+        }
+        
+        //对交点x坐标进行从小到大的排序
+        std::sort(intersecXs.begin(),intersecXs.end());
+        
+        //计算两两成对的间隔长度，计入面积
+        for(int i=0;i<intersecXs.size();i+=2)
+        {
+            int x1 = intersecXs[i];
+            int x2 = intersecXs[i+1];
+            
+            cv::line(testImg,cv::Point(x1,y0),cv::Point(x2,y0),cv::Scalar(255));
+        }
+        //cv::namedWindow("scanAreaTestImg",0);
+        //cv::imshow("scanAreaTestImg",testImg);
+        //cv::waitKey();
+    }
 }
