@@ -48,7 +48,7 @@ private:
     
     //debug用的一些函数
     void drawPolygon(cv::Mat &img, PolygonPattern &polygon);
-    void drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg);
+    void drawPolygons(std::vector<PolygonPattern> &polygons, cv::Mat &outImg);
 };
 
 #endif // TANGRAMSOLVER_H

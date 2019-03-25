@@ -1,6 +1,6 @@
 #include "TangramSolver.h"
 
-#define DEBUG_MODE 0
+#define DEBUG_MODE 1
 
 TangramSolver::TangramSolver() 
 {
@@ -147,13 +147,13 @@ bool TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     //test polygon
     if(DEBUG_MODE)
     {
-        cv::Mat binUnitsImg_test;
-        drawPolygons(binUnitsImg,unitPolygons,binUnitsImg_test);
+        cv::Mat binUnitsImg_test = binUnitsImg.clone();
+        drawPolygons(unitPolygons,binUnitsImg_test);
         cv::namedWindow("binUnitsImg_test",0);
         cv::imshow("binUnitsImg_test",binUnitsImg_test);
         
-        cv::Mat binDstsImg_test;
-        drawPolygons(binDstsImg,dstPolygons,binDstsImg_test);
+        cv::Mat binDstsImg_test = binDstsImg.clone();
+        drawPolygons(dstPolygons,binDstsImg_test);
         cv::namedWindow("binDstsImg_test",0);
         cv::imshow("binDstsImg_test",binDstsImg_test);
     }
@@ -299,6 +299,14 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
             }
             cv::namedWindow("bg2",0);
             cv::imshow("bg2",bg2);
+            
+            //test
+            cv::Mat testImg(m_resizeLength,m_resizeLength,CV_8UC3,cv::Scalar(0,0,0));
+            std::vector<PolygonPattern> testPolygons;
+            testPolygons.push_back(resultPolygon);
+            drawPolygons(testPolygons,testImg);
+            cv::imshow("testResultPolygon",testImg);
+
             cv::waitKey();
         }
         
@@ -334,7 +342,7 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
                 int unitPtsSize = unitPolygons[unitId].getCntPtsSize();
                 for(int ucId=0;ucId<unitPtsSize;ucId++)
                 {                    
-                    //若目标角点小于单元块该角点则跳过
+                    //若目标角点小于单元块该角点则跳过(这里结合轮廓拼接方案有问题!)
                     if(dstPolygon.getAngle(dcId) < unitPolygons[unitId].getAngle(ucId) - 0.1)
                         continue;
                     
@@ -421,10 +429,12 @@ void TangramSolver::drawPolygon(cv::Mat &img, PolygonPattern &polygon)
     cv::drawContours(img,contours,0,cv::Scalar(255));
 }
 
-void TangramSolver::drawPolygons(const cv::Mat &img, std::vector<PolygonPattern> &polygons, cv::Mat &outImg)
+void TangramSolver::drawPolygons(std::vector<PolygonPattern> &polygons, cv::Mat &outImg)
 {
-    img.copyTo(outImg);
-    cv::cvtColor(outImg,outImg,CV_GRAY2BGR);
+    if(outImg.channels() == 1)
+        cv::cvtColor(outImg,outImg,CV_GRAY2BGR);
+    
+    outImg = cv::Scalar(0,0,0);
     
     std::cout<<"polygons.size():"<<polygons.size()<<std::endl;
     for(int i=0; i<polygons.size();i++)

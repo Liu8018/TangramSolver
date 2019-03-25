@@ -6,16 +6,19 @@ int main()
     cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units4.jpg",0);
     
     //读入目标图像
-    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/04.jpg",0);
+    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/05.jpg",0);
     
+    //time
     double runtime = cv::getTickCount();
     
+    //solve
     TangramSolver solver;
     solver.setFlipEnable(false);
     
     std::vector<std::vector<cv::Point>> resultPos;
     bool isSolved = solver.solve(unitsImg,dstsImg,resultPos);
     
+    //time
     runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
     std::cout<<"runtime:"<<runtime<<std::endl;
     
