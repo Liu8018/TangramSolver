@@ -214,7 +214,6 @@ int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h
             else
                 calcInterSec(cv::Point(0,y0),cv::Point(100,y0),pt1,pt2,intersecPt);
             
-            
             intersecXs.push_back(intersecPt.x);
         }
         

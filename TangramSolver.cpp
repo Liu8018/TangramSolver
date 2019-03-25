@@ -9,6 +9,7 @@ TangramSolver::TangramSolver()
     m_resizeLength = 200;
     
     m_distRatio = 0.05;
+    m_maxOutDist = 6;
     
     PolygonPattern::setCanvasSize(m_resizeLength);
 }
@@ -240,7 +241,7 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
         cv::Point2f newUnitPt = dstOriginPt + newUnitSideVec;
         
         //若这个点在目标图案外太远距离，则放置失败
-        if(cv::pointPolygonTest(dstPolygonContour,newUnitPt,1) < -8)
+        if(cv::pointPolygonTest(dstPolygonContour,newUnitPt,1) < -m_maxOutDist)
             return false;
         
         tmpResultUnitPos[i] = newUnitPt;
@@ -270,7 +271,6 @@ bool TangramSolver::place(PolygonPattern &dstPolygon, int dstCornerId,
     float diffArea = dstArea-unitArea;
     //实际放置后的面积与理想面积之差占单元块面积的比例
     float distRatio = (resultArea - cv::arcLength(tmpResultUnitPos,1) - diffArea)/unitArea;
-    
     //判断是否符合条件
     if(distRatio < m_distRatio)
     {

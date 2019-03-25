@@ -24,6 +24,9 @@ private:
     //允许的畸变程度
     float m_distRatio;
     
+    //允许的超出图案边界的距离
+    int m_maxOutDist;
+    
     //缩放大小
     int m_resizeLength;
     

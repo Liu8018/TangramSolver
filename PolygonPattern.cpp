@@ -188,6 +188,12 @@ float PolygonPattern::getArea()
         cv::drawContours(polyCanvas,contours,0,255,-1);
         
         m_area = cv::countNonZero(polyCanvas);
+        
+        /*
+        if(m_cntPts.empty())
+            point2fToPoint(m_cntPt2fs,m_cntPts);
+        m_area = scanArea(m_cntPts,0,polyCanvas.cols,0,polyCanvas.rows);
+        */
     }
     
     return m_area;
