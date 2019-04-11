@@ -6,7 +6,7 @@ int main()
     cv::Mat unitsImg = cv::imread("../TangramSolver/unitPatterns/units4.jpg",0);
     
     //读入目标图像
-    cv::Mat dstsImg = cv::imread("../TangramSolver/dstPatterns/d4/01.jpg",0);
+    cv::Mat dstImg = cv::imread("../TangramSolver/dstPatterns/d4/09.jpg",0);
     
     //time
     double runtime = cv::getTickCount();
@@ -16,7 +16,7 @@ int main()
     solver.setFlipEnable(false);
     
     std::vector<std::vector<cv::Point>> resultPos;
-    bool isSolved = solver.solve(unitsImg,dstsImg,resultPos);
+    bool isSolved = solver.solve(unitsImg,dstImg,resultPos);
     
     //time
     runtime = (cv::getTickCount() - runtime) / cv::getTickFrequency();
@@ -25,7 +25,7 @@ int main()
     //test
     if(isSolved)
     {
-        cv::Mat testImg = dstsImg.clone();
+        cv::Mat testImg = dstImg.clone();
         cv::cvtColor(testImg,testImg,cv::COLOR_GRAY2BGR);
         
         cv::drawContours(testImg,resultPos,-1,cv::Scalar(255,100,30),2);

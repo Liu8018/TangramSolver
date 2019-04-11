@@ -18,6 +18,10 @@ public:
     void setFlipEnable(bool isFlipEnable);
     
 private:
+    int m_totalCount;
+    int m_yCount;
+    int m_nCount;
+    
     //是否允许翻转
     int m_isFlipEnable;
     
@@ -48,6 +52,14 @@ private:
     //深度优先搜索
     bool depthFirstFit(PolygonPattern &dstPolygon, std::vector<PolygonPattern> &unitPolygons, 
                        std::vector<bool> isUsed, std::vector<std::vector<cv::Point>> &resultPos);
+    
+    bool depthFirstFit_judge(PolygonPattern &dstPolygon, std::vector<PolygonPattern> &unitPolygons, 
+                                        std::vector<bool> isUsed, std::vector<std::vector<cv::Point> > &resultPos);
+    
+    //输出数据集
+    std::string m_yDatasetPath;
+    std::string m_nDatasetPath;
+    void outputDataset(std::string path,PolygonPattern &dstPolygon, std::vector<PolygonPattern> &unitPolygons, std::vector<bool> isUsed);
     
     //debug用的一些函数
     void drawPolygon(cv::Mat &img, PolygonPattern &polygon);

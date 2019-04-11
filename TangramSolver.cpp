@@ -12,6 +12,12 @@ TangramSolver::TangramSolver()
     m_maxOutDist = 6;
     
     PolygonPattern::setCanvasSize(m_resizeLength);
+    
+    m_totalCount = 0;
+    m_yCount = 0;
+    m_nCount = 0;
+    m_yDatasetPath = "/media/liu/D/linux-windows/dataset/Tpuzzle/y";
+    m_nDatasetPath = "/media/liu/D/linux-windows/dataset/Tpuzzle/n";
 }
 
 void TangramSolver::setFlipEnable(bool isFlipEnable)
@@ -52,6 +58,16 @@ void TangramSolver::extractPolygonPatterns(const cv::Mat &binImg, std::vector<Po
 
 void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
 {
+    /*
+    cv::Mat testStripImg(m_resizeLength,m_resizeLength,CV_8U,cv::Scalar(0));
+    std::vector<PolygonPattern> plgs(1);
+    plgs[0].setPoints(cntPts);
+    drawPolygons(plgs,testStripImg);
+    cv::namedWindow("testStripImg",0);
+    cv::imshow("testStripImg",testStripImg);
+    cv::waitKey();
+    */
+    
     bool isStripped = false;
     
     //遍历轮廓点，删除角度接近180度的点，融合相邻的距离较近的点
@@ -63,7 +79,8 @@ void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
         //角度
         float angle = calcAngle(cntPts[getPrevIndex(ptSize,i)],cntPts[i],cntPts[getNextIndex(ptSize,i)]);
         //std::cout<<"angle:"<<angle<<std::endl;
-        if(std::fabs(angle-CV_PI) < 0.1)
+        float angleDiff = std::fabs(angle-CV_PI);
+        if(angleDiff < 0.1)
         {
             isStripped = true;
             continue;
@@ -74,8 +91,10 @@ void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
         cv::Point pt2 = cntPts[getNextIndex(ptSize,i)];
         int distance = std::abs(pt1.x-pt2.x) + std::abs(pt1.y-pt2.y);
         //std::cout<<"distance:"<<distance<<std::endl;
-        if(distance < 5)
+        
+        if(distance < m_resizeLength/40)
         {
+            //std::cout<<pt1<<" "<<pt2<<std::endl;
             isStripped = true;
             
             //计算交点
@@ -92,8 +111,12 @@ void TangramSolver::stripContour(std::vector<cv::Point> &cntPts)
                 newPt.x = (pt1.x+pt2.x)/2;
                 newPt.y = (pt1.y+pt2.y)/2;
             }
-            
+            //std::cout<<"newPt:"<<newPt<<std::endl;
             cntPts_new.push_back(newPt);
+            
+            if(i == cntPts.size()-1)
+                cntPts_new.erase(cntPts_new.begin(),cntPts_new.begin()+1);
+            
             i++;
             continue;
         }
@@ -164,7 +187,11 @@ bool TangramSolver::solve(const cv::Mat &unitsImg, const cv::Mat &dstsImg, std::
     
     std::vector<bool> isUsed(unitPolygons.size(),false);
     resultPos.resize(unitPolygons.size());
-    bool isFited = depthFirstFit(dstPolygons[0],unitPolygons,isUsed,resultPos);
+    bool isFited = depthFirstFit_judge(dstPolygons[0],unitPolygons,isUsed,resultPos);
+    
+    std::cout<<"total count:"<<m_totalCount<<std::endl;
+    std::cout<<"yCount:"<<m_yCount<<std::endl;
+    std::cout<<"nCount:"<<m_nCount<<std::endl;
     
     if(isFited)
     {
@@ -428,14 +455,141 @@ bool TangramSolver::depthFirstFit(PolygonPattern &dstPolygon, std::vector<Polygo
     return false;
 }
 
+bool TangramSolver::depthFirstFit_judge(PolygonPattern &dstPolygon, std::vector<PolygonPattern> &unitPolygons, 
+                                    std::vector<bool> isUsed, std::vector<std::vector<cv::Point> > &resultPos)
+{
+    bool judge = false;
+    
+    m_totalCount++;
+    
+    int dstPtsSize = dstPolygon.getCntPtsSize();
+    int unitSize = unitPolygons.size();
+    
+    //目标polygon的每个角点
+    for(int dcId=0;dcId<dstPtsSize;dcId++)
+    {
+        //每个单元块
+        for(int unitId=0;unitId<unitSize;unitId++)
+        {
+            //若已使用过则跳过
+            if(isUsed[unitId])
+                continue;
+            
+            //正反两面
+            for(int flip=0;flip<=m_isFlipEnable;flip++)
+            {
+                unitPolygons[unitId].setFlipState(flip);
+                
+                //单元块的每个角点
+                int unitPtsSize = unitPolygons[unitId].getCntPtsSize();
+                for(int ucId=0;ucId<unitPtsSize;ucId++)
+                {                    
+                    //若目标角点小于单元块该角点则跳过
+                    if(dstPolygon.getAngle(dcId) < unitPolygons[unitId].getAngle(ucId) - 0.1)
+                        continue;
+                    
+                    //四种角点对齐方式
+                    for(int dcb=0;dcb<=1;dcb++)
+                    {
+                        for(int ucb=0;ucb<=1;ucb++)
+                        {
+                            if(DEBUG_MODE)
+                            {
+                                std::cout<<"dcId:"<<dcId<<std::endl;
+                                std::cout<<"unitId:"<<unitId<<std::endl;
+                                std::cout<<"flip:"<<flip<<std::endl;
+                                std::cout<<"ucId:"<<ucId<<std::endl;
+                                std::cout<<"dcb:"<<dcb<<std::endl;
+                                std::cout<<"ucb:"<<ucb<<std::endl;
+                            }
+                            
+                            //尝试放置
+                            //确定dstPolygon和unitPolygon的情况下，place函数的六个决定性参数：dcId,unitId,flipState,ucId,dcb,ucb
+                            PolygonPattern resultPolygon;
+                            bool isPlaced = place(dstPolygon,dcId,unitPolygons[unitId],ucId,dcb,ucb,resultPolygon,resultPos[unitId]);
+                            
+                            //若放置成功
+                            if(isPlaced)
+                            {
+                                std::vector<bool> nextIsUsed;
+                                nextIsUsed.assign(isUsed.begin(),isUsed.end());
+                                
+                                nextIsUsed[unitId] = true;
+                                
+                                //检查是否所有单元块都放置完毕
+                                int nUsed=0;
+                                for(int i=0;i<unitSize;i++)
+                                {
+                                    nUsed += nextIsUsed[i];
+                                }
+                                
+                                //若放置完毕且最终图案面积足够小则终止递归,否则继续
+                                if(nUsed == unitSize)
+                                {
+                                    int totalLength = 0;
+                                    for(int l=0;l<unitSize;l++)
+                                    {
+                                        std::vector<cv::Point> tmpUnitContour;
+                                        unitPolygons[l].getAllCntPoints(tmpUnitContour);
+                                        totalLength += cv::arcLength(tmpUnitContour,1);
+                                    }
+                                    
+                                    float resultAreaRatio = (resultPolygon.getArea()-totalLength)/m_dstPolygonArea;
+                                    
+                                    if(DEBUG_MODE)
+                                        std::cout<<"result area ratio:"<<(resultPolygon.getArea()-totalLength)/m_dstPolygonArea<<"-----------------------------"<<std::endl;
+                                    
+                                    if(resultAreaRatio < 0.01)
+                                    {
+                                        m_yCount++;
+                                        
+                                        if(m_yCount%10 == 0)
+                                            outputDataset(m_yDatasetPath,dstPolygon,unitPolygons,isUsed);
+                                        
+                                        judge = true;
+                                    }
+                                }
+                                else
+                                {
+                                    bool isFited = depthFirstFit_judge(resultPolygon,unitPolygons,nextIsUsed,resultPos);
+                                    if(isFited)
+                                    {
+                                        m_yCount++;
+                                        
+                                        if(m_yCount%10 == 0)
+                                            outputDataset(m_yDatasetPath,dstPolygon,unitPolygons,isUsed);
+                                        
+                                        judge = true;
+                                    }
+                                    else
+                                    {
+                                        m_nCount++;
+                                        
+                                        if(m_nCount%160 == 0)
+                                            outputDataset(m_nDatasetPath,dstPolygon,unitPolygons,isUsed);
+                                    }
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
+    }
+    
+    return judge;
+}
+
 void TangramSolver::drawPolygon(cv::Mat &img, PolygonPattern &polygon)
 {
-    std::vector<cv::Point2f> contours_2f;
-    polygon.getAllCntPoint2fs(contours_2f);
-    std::vector<std::vector<cv::Point>> contours(1);
-    for(int k=0;k<contours_2f.size();k++)
-        contours[0].push_back(cv::Point(contours_2f[k].x,contours_2f[k].y));
-    cv::drawContours(img,contours,0,cv::Scalar(255));
+    std::vector<cv::Point> contour;
+    polygon.getAllCntPoints(contour);
+    std::vector<std::vector<cv::Point>> contours;
+    contours.push_back(contour);
+    
+    cv::drawContours(img,contours,0,cv::Scalar(255),-1);
 }
 
 void TangramSolver::drawPolygons(std::vector<PolygonPattern> &polygons, cv::Mat &outImg)
@@ -457,7 +611,7 @@ void TangramSolver::drawPolygons(std::vector<PolygonPattern> &polygons, cv::Mat 
         for(int k=0;k<contours_2f.size();k++)
             contours[0].push_back(cv::Point(contours_2f[k].x,contours_2f[k].y));
         //画出轮廓
-        cv::drawContours(outImg,contours,0,cv::Scalar(27,0,250));
+        cv::drawContours(outImg,contours,0,cv::Scalar(255,255,255),-1);
         
         int cntPtsSize = polygons[i].getCntPtsSize();
         
@@ -469,4 +623,20 @@ void TangramSolver::drawPolygons(std::vector<PolygonPattern> &polygons, cv::Mat 
             cv::circle(outImg,polygons[i].getCntPoint(j),2,cv::Scalar(0,200,0));
         }
     }
+}
+
+void TangramSolver::outputDataset(std::string path, PolygonPattern &dstPolygon, std::vector<PolygonPattern> &unitPolygons, std::vector<bool> isUsed)
+{
+    cv::Mat outputImg_s1(m_resizeLength,m_resizeLength,CV_8U,cv::Scalar(0));
+    cv::Mat outputImg_s2(m_resizeLength,m_resizeLength,CV_8U,cv::Scalar(0));
+    drawPolygon(outputImg_s1,dstPolygon);
+    for(int u=0;u<unitPolygons.size();u++)
+    {
+        if(!isUsed[u])
+            drawPolygon(outputImg_s2,unitPolygons[u]);
+    }
+    cv::Mat outputImg(2*m_resizeLength,m_resizeLength,CV_8U);
+    outputImg_s1.copyTo(outputImg(cv::Range(0,m_resizeLength),cv::Range(0,m_resizeLength)));
+    outputImg_s2.copyTo(outputImg(cv::Range(m_resizeLength,2*m_resizeLength),cv::Range(0,m_resizeLength)));
+    writeImg(path,outputImg);
 }

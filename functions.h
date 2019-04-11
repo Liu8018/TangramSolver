@@ -36,4 +36,7 @@ float getVecNorm(cv::Point2f vec);
 //使用扫描法计算多边形区域面积
 int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h2);
 
+//输出图像
+void writeImg(std::string path/*输出至哪个目录下*/, const cv::Mat &img);
+
 #endif // FUNCTIONS_H

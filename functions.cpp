@@ -78,7 +78,7 @@ bool isConvexCorner2(const std::vector<cv::Point> &cntPts, int ptId)
     //按邻域面积判断凹凸性
     cv::Point pt = cntPts[ptId];
     
-    int dia = 7;
+    int dia = 5;
     float area = dia*dia;
     int rad = dia/2;
     
@@ -257,4 +257,18 @@ int scanArea(const std::vector<cv::Point> &cntPts, int w1, int w2, int h1, int h
     }
     
     return resultArea;
+}
+
+void writeImg(std::string path, const cv::Mat &img)
+{
+    struct timespec tn;
+    clock_gettime(CLOCK_REALTIME, &tn);
+    
+    if(path[path.length()-1] != '/')
+        path += '/';
+    std::stringstream ss;
+    ss<<tn.tv_sec<<tn.tv_nsec;
+    std::string fileName = path + ss.str() + ".jpg";
+    
+    cv::imwrite(fileName,img);
 }
